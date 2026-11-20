@@ -1,0 +1,110 @@
+/* Galactic Alliance / Tabletop Defense service worker template.
+ * scripts/generate-sw.mjs fills the placeholders below and writes dist/ga-sw.js after `vite build`.
+ * Supports both root (`/`) and subpath (e.g. `/TTDefense/`) deployments. */
+const GA_VERSION = 'cb525fdf1635dbf7';
+const GA_BASE = '/TTDefense/';
+const GA_PRECACHE = [
+  "/TTDefense/assets/BitmapFont-BRFUFHM0.js",
+  "/TTDefense/assets/CanvasRenderer-yVSk1y9S.js",
+  "/TTDefense/assets/Filter-Djv_ez8z.js",
+  "/TTDefense/assets/RenderTargetSystem-Dy9Tj-6_.js",
+  "/TTDefense/assets/WebGLRenderer-DHjiF4x5.js",
+  "/TTDefense/assets/WebGPURenderer-E8HboWnS.js",
+  "/TTDefense/assets/browserAll-CE6B_uF7.js",
+  "/TTDefense/assets/castle-map.jpg",
+  "/TTDefense/assets/getTexelRangeRects-DZcI_l9w.js",
+  "/TTDefense/assets/index-D657jTKZ.js",
+  "/TTDefense/assets/mars-map.jpg",
+  "/TTDefense/assets/naval-map.jpg",
+  "/TTDefense/assets/us-dc-map.jpg",
+  "/TTDefense/assets/webworkerAll-GmBXITTU.js",
+  "/TTDefense/icons/apple-touch-icon.png",
+  "/TTDefense/icons/icon-192.png",
+  "/TTDefense/icons/icon-512.png",
+  "/TTDefense/icons/maskable-512.png",
+  "/TTDefense/index.html",
+  "/TTDefense/manifest.webmanifest"
+];
+
+const CACHE_PREFIX = 'ga-app-';
+const CACHE_NAME = CACHE_PREFIX + GA_VERSION;
+const SHELL = GA_BASE + 'index.html';
+const BASE_NO_SLASH = GA_BASE.length > 1 ? GA_BASE.slice(0, -1) : GA_BASE;
+const PRECACHE_SET = new Set(GA_PRECACHE);
+
+function usable(res) {
+  return !!res && res.ok && res.type !== 'opaque' && res.type !== 'error';
+}
+
+self.addEventListener('install', event => {
+  // Fetch everything first, then write in one go: a failed install leaves no partial cache and
+  // the previous version keeps serving. No skipWaiting here: the page must ask for activation.
+  event.waitUntil((async () => {
+    const fetched = [];
+    for (const url of GA_PRECACHE) {
+      const res = await fetch(new Request(url, { cache: 'reload' }));
+      if (!usable(res)) throw new Error('Precache failed: ' + url + ' (' + res.status + ')');
+      fetched.push([url, res]);
+    }
+    const cache = await caches.open(CACHE_NAME);
+    try {
+      for (const [url, res] of fetched) await cache.put(url, res);
+    } catch (err) {
+      await caches.delete(CACHE_NAME);
+      throw err;
+    }
+  })());
+});
+
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'GA_SKIP_WAITING') self.skipWaiting();
+});
+
+self.addEventListener('activate', event => {
+  event.waitUntil((async () => {
+    await self.clients.claim();
+    // Older tabs may still request their hashed assets from an older app cache, so only prune our
+    // own previous caches when no other window is open. Unrelated caches are never touched.
+    const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    if (wins.length > 1) return;
+    const names = await caches.keys();
+    await Promise.all(names
+      .filter(n => n.startsWith(CACHE_PREFIX) && n !== CACHE_NAME)
+      .map(n => caches.delete(n)));
+  })());
+});
+
+async function matchOwnCaches(pathname) {
+  const current = await caches.open(CACHE_NAME);
+  const hit = await current.match(pathname);
+  if (hit) return hit;
+  const names = (await caches.keys()).filter(n => n.startsWith(CACHE_PREFIX) && n !== CACHE_NAME);
+  for (const n of names) {
+    const old = await (await caches.open(n)).match(pathname);
+    if (old) return old;
+  }
+  return null;
+}
+
+self.addEventListener('fetch', event => {
+  const req = event.request;
+  if (req.method !== 'GET') return;
+  const url = new URL(req.url);
+  if (url.origin !== self.location.origin) return;
+  const path = url.pathname;
+
+  if (req.mode === 'navigate') {
+    if (path !== GA_BASE && path !== BASE_NO_SLASH && path !== SHELL) return;
+    event.respondWith((async () => {
+      const shell = await (await caches.open(CACHE_NAME)).match(SHELL);
+      return shell || fetch(req);
+    })());
+    return;
+  }
+  if (PRECACHE_SET.has(path) && path !== GA_BASE + 'ga-sw.js') {
+    event.respondWith((async () => (await matchOwnCaches(path)) || fetch(req))());
+  } else if (path.startsWith(GA_BASE + 'assets/')) {
+    // Hashed asset from an older open tab: serve from an older app cache when we still have it.
+    event.respondWith((async () => (await matchOwnCaches(path)) || fetch(req))());
+  }
+});
