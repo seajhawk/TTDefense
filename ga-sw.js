@@ -1,25 +1,25 @@
 /* Galactic Defense / Tabletop Defense service worker template.
  * scripts/generate-sw.mjs fills the placeholders below and writes dist/ga-sw.js after `vite build`.
  * Supports both root (`/`) and subpath (e.g. `/TTDefense/`) deployments. */
-const GA_VERSION = 'c68f164d997912d8';
+const GA_VERSION = '94e468db9d10905f';
 const GA_BASE = '/TTDefense/';
 const GA_PRECACHE = [
-  "/TTDefense/assets/BitmapFont-OJ-wllqU.js",
-  "/TTDefense/assets/CanvasRenderer-Bq5zn2-r.js",
-  "/TTDefense/assets/Filter-C8eO_gc6.js",
-  "/TTDefense/assets/RenderTargetSystem-19ubPOqV.js",
-  "/TTDefense/assets/WebGLRenderer-DwLrLpP7.js",
-  "/TTDefense/assets/WebGPURenderer-DSq_b7PZ.js",
-  "/TTDefense/assets/browserAll-BE5Jvf34.js",
+  "/TTDefense/assets/BitmapFont-BV9eyhfk.js",
+  "/TTDefense/assets/CanvasRenderer-CpMzsO7d.js",
+  "/TTDefense/assets/Filter-DuRD9Aof.js",
+  "/TTDefense/assets/RenderTargetSystem-C0VEZrlJ.js",
+  "/TTDefense/assets/WebGLRenderer-C1kNGllA.js",
+  "/TTDefense/assets/WebGPURenderer-Ck63sZlb.js",
+  "/TTDefense/assets/browserAll-C3Fry0IL.js",
   "/TTDefense/assets/castle-map.jpg",
-  "/TTDefense/assets/getTexelRangeRects-DP2fKexs.js",
-  "/TTDefense/assets/index-BDXDIu1b.js",
+  "/TTDefense/assets/getTexelRangeRects-BW9lq0c7.js",
+  "/TTDefense/assets/index-MpsMu6DQ.js",
   "/TTDefense/assets/kitchen-map.jpg",
   "/TTDefense/assets/lawn-map.jpg",
   "/TTDefense/assets/mars-map.jpg",
   "/TTDefense/assets/naval-map.jpg",
   "/TTDefense/assets/us-dc-map.jpg",
-  "/TTDefense/assets/webworkerAll-B9DgV1Rs.js",
+  "/TTDefense/assets/webworkerAll-poTBIbJP.js",
   "/TTDefense/icons/apple-touch-icon.png",
   "/TTDefense/icons/icon-192.png",
   "/TTDefense/icons/icon-512.png",
