@@ -1,7 +1,7 @@
 /* Galactic Defense / Tabletop Defense service worker template.
  * scripts/generate-sw.mjs fills the placeholders below and writes dist/ga-sw.js after `vite build`.
  * Supports both root (`/`) and subpath (e.g. `/TTDefense/`) deployments. */
-const GA_VERSION = '0f4fb56fb391ac21';
+const GA_VERSION = '96d56e89d6333e6f';
 const GA_BASE = '/TTDefense/';
 const GA_PRECACHE = [
   "/TTDefense/assets/BitmapFont-3t_C8LUF.js",
